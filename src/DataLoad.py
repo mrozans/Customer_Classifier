@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def load_products_data():
     products_data_types = {
         'product_id': 'int64',
@@ -51,3 +52,20 @@ def load_users_data():
     users_df = pd.read_json('../data/users.jsonl', 'records', dtype=users_data_types, lines=True)
     return pd.get_dummies(users_df, columns=['city'])
 
+
+def user_buys(uid, sessions_df):
+    return len(sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT'] == 1)].index)
+
+
+def user_visits(uid, sessions_df):
+    return len(sessions_df.loc[sessions_df['user_id'] == uid].index)
+
+
+def mean_accepted_discount(uid, sessions_df):
+    return sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT']
+                                                              == 1)]['offered_discount'].mean()
+
+
+def mean_rejected_discounts(uid, sessions_df):
+    return sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT']
+                                                              == 0)]['offered_discount'].mean()
