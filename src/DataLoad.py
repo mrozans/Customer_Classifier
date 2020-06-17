@@ -50,7 +50,7 @@ def load_users_data():
     }
 
     users_df = pd.read_json('../data/users.jsonl', 'records', dtype=users_data_types, lines=True)
-    return pd.get_dummies(users_df, columns=['city'])
+    return users_df
 
 
 def user_buys(uid, sessions_df):
