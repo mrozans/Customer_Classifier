@@ -105,3 +105,35 @@ def spendings(users_df, sessions_df, products_df):
         
     users_df['spendings'] = spendings
     return users_df
+	
+def discounts_stats(users_df, sessions_df):
+    mad = []
+    mrd = []
+
+    for i in users_df['user_id']:
+        mad.append(mean_accepted_discount(i, sessions_df))
+        mrd.append(mean_rejected_discounts(i, sessions_df))
+    
+    users_df['m_accepted_discounts'] = mad
+    users_df['m_rejected_discounts'] = mrd
+    return users_df
+	
+def discounts_affects(uid, sessions):
+    user_sessions = sessions.loc[sessions['user_id'] == uid]
+    a =(user_sessions.groupby(['offered_discount', 'event_type_BUY_PRODUCT']).count() 
+        / user_sessions.groupby('offered_discount').count())['event_type_VIEW_PRODUCT']
+    lista = a[:,0].tolist()
+    for i in range(len(lista)-1):
+        if lista[i+1] > lista[i]:
+            return False
+    return True
+	
+def discounts_label(users, sessions):
+    arr = []
+    for i in users['user_id']:
+        if(discounts_affects(i, sessions)):
+            arr.append(1)
+        else:
+            arr.append(0)
+    users['label'] = arr
+    return users
