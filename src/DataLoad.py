@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from scipy.special import softmax
+
 
 def load_products_data():
     products_data_types = {
@@ -49,5 +51,89 @@ def load_users_data():
     }
 
     users_df = pd.read_json('../data/users.jsonl', 'records', dtype=users_data_types, lines=True)
-    return pd.get_dummies(users_df, columns=['city'])
+    return users_df
 
+
+def user_buys(uid, sessions_df):
+    return len(sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT'] == 1)].index)
+
+
+def user_visits(uid, sessions_df):
+    return len(sessions_df.loc[sessions_df['user_id'] == uid].index)
+
+
+def mean_accepted_discount(uid, sessions_df):
+    return sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT']
+                                                              == 1)]['offered_discount'].mean()
+
+
+def mean_rejected_discounts(uid, sessions_df):
+    return sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT']
+                                                              == 0)]['offered_discount'].mean()
+															  
+def fav_categories(uid, sessions_df, products_df):
+    products_id = sessions_df.loc[sessions_df['user_id'] == uid]['product_id']
+    fav = products_df.loc[products_df['product_id'].isin(products_id.tolist())]
+    fav = fav[fav.columns[3:]]
+    return fav.sum()
+
+def favourite_products(users_df, sessions_df, products_df):
+    arr = np.zeros(shape =(len(users_df['user_id']), 28))
+    j = 0
+    for i in users_df['user_id']:
+        arr[j] = softmax(fav_categories(i, sessions_df, products_df))
+        j += 1
+    fv =  fav_categories(102, sessions_df, products_df)
+    for k in range(len(fv.index.tolist())):
+        users_df[fv.index.tolist()[k]] = arr[:, k]
+    return users_df
+	
+def spendings(users_df, sessions_df, products_df):
+    spendings = []
+    for u_id in users_df['user_id']:
+        products_id = sessions_df.loc[(sessions_df['user_id'] == u_id)
+                                & (sessions_df['event_type_BUY_PRODUCT'] == 1)][['product_id', 'offered_discount']].to_numpy()       
+        spend = 0
+        for i in range(products_id.shape[0]):
+            if(np.isnan(products_id[i,0])):
+                continue
+            price = products_df.loc[products_df['product_id'] 
+                                 == products_id[i, 0]]['price'].to_numpy()[0] * (100 - products_id[i, 1])/100
+            if(not np.isnan(price)):
+                spend += price
+        spendings.append(spend)
+        
+    users_df['spendings'] = spendings
+    return users_df
+	
+def discounts_stats(users_df, sessions_df):
+    mad = []
+    mrd = []
+
+    for i in users_df['user_id']:
+        mad.append(mean_accepted_discount(i, sessions_df))
+        mrd.append(mean_rejected_discounts(i, sessions_df))
+    
+    users_df['m_accepted_discounts'] = mad
+    users_df['m_rejected_discounts'] = mrd
+    return users_df
+	
+def discounts_affects(uid, sessions):
+    user_sessions = sessions.loc[sessions['user_id'] == uid]
+    a =(user_sessions.groupby(['offered_discount', 'event_type_BUY_PRODUCT']).count() 
+        / user_sessions.groupby('offered_discount').count())['event_type_VIEW_PRODUCT']
+    lista = a[:,0].tolist()
+    for i in range(len(lista)-1):
+        if lista[i+1] > lista[i]:
+            return False
+    return True
+	
+def discounts_label(users, sessions):
+    arr = []
+    for i in users['user_id']:
+        if(discounts_affects(i, sessions)):
+            arr.append(1)
+        else:
+            arr.append(0)
+    users['label'] = arr
+    return users
