@@ -56,7 +56,7 @@ class RegressionModel:
         self.classification_model = classification_model
         self.train_sessions = train_sessions
 
-    def get_buys(self, uid):
+    def get_buys(self, uid, cleared_sessions_df):
         drop_list = []
         tmp = cleared_sessions_df.loc[
             (cleared_sessions_df['user_id'] == uid) & (cleared_sessions_df['event_type_BUY_PRODUCT'] == 1)]
@@ -82,12 +82,12 @@ class RegressionModel:
 
         return tmp
 
-    def get_product_category(self, pid):
+    def get_product_category(self, pid, products_df):
         tmp = products_df.loc[((products_df['product_id']).isin(pid))]
         tmp = tmp.drop(['product_name', 'price', 'product_id'], axis=1)
         return tmp
 
-    def set_selected_users(self):
+    def set_selected_users(self, users_df, test, products_df):
         i = -1
         selection = self.classification_model.predict(users_df, test, products_df)
         for user in users_df['user_id']:
@@ -95,12 +95,12 @@ class RegressionModel:
             if selection[i] == 1:
                 self.selected_users.append(user)
 
-    def train(self):
+    def train(self, sessions_df, products_df):
         for id in self.selected_users:
             reg = linear_model.LinearRegression()
-            user_buys = self.get_buys(id)
+            user_buys = self.get_buys(id, sessions_df)
             if len(user_buys.index) > 0:
-                reg.fit(model2.get_product_category(user_buys['product_id']), user_buys['offered_discount'])
+                reg.fit(self.get_product_category(user_buys['product_id'], products_df), user_buys['offered_discount'])
                 self.reg_list.append([id, reg])
             else:
                 self.reg_list.append([id, 0])
