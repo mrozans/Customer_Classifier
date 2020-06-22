@@ -11,6 +11,7 @@ if __name__ == "__main__":
 
     users_df = DataLoad.load_users_data()
     sessions_df = DataLoad.load_sessions_data()
+    sessions_df = sessions_df.loc[sessions_df['timestamp'] <= '2020-3-12']
     sessions_df = sessions_df.loc[(~sessions_df['user_id'].isna()) | (~sessions_df['product_id'].isna())]
     products_df = DataLoad.load_products_data()
 
