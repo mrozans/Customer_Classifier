@@ -20,8 +20,8 @@ if __name__ == "__main__":
     model.set_selected_users(users_df, sessions_df, products_df)
     model.train(sessions_df, products_df)
 
-    base_model = Model.BaseModel()
-    base_model.train(products_df, cleared_sessions_df)
+    base_model = BaseModel.BaseModel()
+    base_model.train(products_df, sessions_df)
 
     while(True):
         print('XD')
