@@ -8,7 +8,6 @@ from sklearn import linear_model
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, precision_score
 from sklearn.metrics import recall_score, f1_score, accuracy_score
-pd.options.mode.chained_assignment = None
 
 def split_data(sessions, day_to_split= '2020-3-12'):
     test = sessions_df.loc[sessions_df['timestamp'] > '2020-3-12']
@@ -59,8 +58,8 @@ class RegressionModel:
 
     def get_buys(self, uid, cleared_sessions_df):
         drop_list = []
-        tmp = cleared_sessions_df.loc[
-            (cleared_sessions_df['user_id'] == uid) & (cleared_sessions_df['event_type_BUY_PRODUCT'] == 1)]
+        tmp = cleared_sessions_df.copy()
+        tmp = tmp.loc[(tmp['user_id'] == uid) & (tmp['event_type_BUY_PRODUCT'] == 1)]
         i = -1
         for index, row in tmp.iterrows():
             if index in drop_list:
