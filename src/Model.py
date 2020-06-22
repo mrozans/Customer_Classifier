@@ -79,7 +79,6 @@ class RegressionModel:
                     drop_list.append(index2)
             if count > 1:
                 tmp.at[index, 'offered_discount'] = sum / count
-
         return tmp
 
     def get_product_category(self, pid, products_df):

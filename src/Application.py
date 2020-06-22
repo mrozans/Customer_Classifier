@@ -15,6 +15,7 @@ if __name__ == "__main__":
     classification_model = Model.ClassificationModel()
     classification_model.train(users_df, sessions_df, products_df)
 
+    sessions_df = sessions_df.loc[(~sessions_df['user_id'].isna()) & (~sessions_df['product_id'].isna())]
     model = Model.RegressionModel(classification_model, sessions_df)
     model.set_selected_users(users_df, sessions_df, products_df)
     model.train(sessions_df, products_df)
@@ -26,7 +27,7 @@ if __name__ == "__main__":
         print('XD')
         user_id = int(input())
         product_id = int(input())
-        if(not a_b or user_id % 2 == 0):
+        if not a_b or user_id % 2 == 0:
             print(model.predict2(user_id, product_id))
         else:
             print(base_model.predict(product_id))
