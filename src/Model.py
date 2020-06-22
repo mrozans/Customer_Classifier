@@ -112,7 +112,7 @@ class RegressionModel:
             i = i + 1
         return -1
 
-    def predict(self, index):
+    def predict(self, index, products_df):
         # row = sessions_df.loc[sessions_df.index == index]
         row = cleared_test_sessions_df.loc[cleared_test_sessions_df.index == index]
         id = self.find(int(row['user_id']))
@@ -120,13 +120,13 @@ class RegressionModel:
             return 0
         if self.reg_list[id][1] == 0:
             return 0
-        return self.reg_list[id][1].predict(self.get_product_category([row['product_id']]))
+        return self.reg_list[id][1].predict(self.get_product_category([row['product_id']],  products_df))
 
-    def predict2(self, user_id, product_id):
+    def predict2(self, user_id, product_id, products_df):
         id = self.find(user_id)
         if id == -1:
             return 0
         if self.reg_list[id][1] == 0:
             return 0
-        return self.reg_list[id][1].predict(self.get_product_category([product_id]))
+        return self.reg_list[id][1].predict(self.get_product_category([product_id], products_df))
 
