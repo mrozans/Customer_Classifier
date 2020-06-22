@@ -8,6 +8,7 @@ from sklearn import linear_model
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, precision_score
 from sklearn.metrics import recall_score, f1_score, accuracy_score
+pd.options.mode.chained_assignment = None
 
 def split_data(sessions, day_to_split= '2020-3-12'):
     test = sessions_df.loc[sessions_df['timestamp'] > '2020-3-12']
