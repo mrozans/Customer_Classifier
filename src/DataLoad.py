@@ -70,12 +70,14 @@ def mean_accepted_discount(uid, sessions_df):
 def mean_rejected_discounts(uid, sessions_df):
     return sessions_df.loc[(sessions_df['user_id'] == uid) & (sessions_df['event_type_BUY_PRODUCT']
                                                               == 0)]['offered_discount'].mean()
-															  
+
+
 def fav_categories(uid, sessions_df, products_df):
     products_id = sessions_df.loc[sessions_df['user_id'] == uid]['product_id']
     fav = products_df.loc[products_df['product_id'].isin(products_id.tolist())]
     fav = fav[fav.columns[3:]]
     return fav.sum()
+
 
 def favourite_products(users_df, sessions_df, products_df):
     arr = np.zeros(shape =(len(users_df['user_id']), 28))
@@ -87,7 +89,8 @@ def favourite_products(users_df, sessions_df, products_df):
     for k in range(len(fv.index.tolist())):
         users_df[fv.index.tolist()[k]] = arr[:, k]
     return users_df
-	
+
+
 def spendings(users_df, sessions_df, products_df):
     spendings = []
     for u_id in users_df['user_id']:
@@ -105,7 +108,8 @@ def spendings(users_df, sessions_df, products_df):
         
     users_df['spendings'] = spendings
     return users_df
-	
+
+
 def discounts_stats(users_df, sessions_df):
     mad = []
     mrd = []
@@ -117,7 +121,8 @@ def discounts_stats(users_df, sessions_df):
     users_df['m_accepted_discounts'] = mad
     users_df['m_rejected_discounts'] = mrd
     return users_df
-	
+
+
 def discounts_affects(uid, sessions):
     user_sessions = sessions.loc[sessions['user_id'] == uid]
     a =(user_sessions.groupby(['offered_discount', 'event_type_BUY_PRODUCT']).count() 
@@ -127,7 +132,8 @@ def discounts_affects(uid, sessions):
         if lista[i+1] > lista[i]:
             return False
     return True
-	
+
+
 def discounts_label(users, sessions):
     arr = []
     for i in users['user_id']:

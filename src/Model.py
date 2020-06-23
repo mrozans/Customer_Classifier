@@ -38,7 +38,7 @@ class ClassificationModel:
         X_train = users.drop('label', axis=1)
         self.clf.fit(X_train, y_train)
 
-    def predict(self, users_df, sessions, products):
+    def predict1(self, users_df, sessions, products):
         users = copy.deepcopy(users_df)
         users = data.favourite_products(users, sessions, products)
         users = data.spendings(users, sessions, products)
@@ -64,13 +64,13 @@ class RegressionModel:
         for index, row in tmp.iterrows():
             if index in drop_list:
                 continue
-            i = i + 1
+            i += 1
             count = 1
             sum = row['offered_discount']
             j = i
             tmp2 = tmp[(i + 1):]
             for index2, row2 in tmp2.iterrows():
-                j = j + 1
+                j += 1
                 if row['product_id'] == row2['product_id']:
                     count = count + 1
                     sum = sum + row2['offered_discount']
@@ -88,9 +88,9 @@ class RegressionModel:
 
     def set_selected_users(self, users_df, test, products_df):
         i = -1
-        selection = self.classification_model.predict(users_df, test, products_df)
+        selection = self.classification_model.predict1(users_df, test, products_df)
         for user in users_df['user_id']:
-            i = i + 1
+            i += 1
             if selection[i] == 1:
                 self.selected_users.append(user)
 
@@ -109,24 +109,55 @@ class RegressionModel:
         for user in self.selected_users:
             if id == user:
                 return i
-            i = i + 1
+            i += 1
         return -1
 
-    def predict(self, index, products_df):
-        # row = sessions_df.loc[sessions_df.index == index]
+    def predict1(self, index, cleared_test_sessions_df, products_df):
         row = cleared_test_sessions_df.loc[cleared_test_sessions_df.index == index]
         id = self.find(int(row['user_id']))
         if id == -1:
             return 0
         if self.reg_list[id][1] == 0:
             return 0
-        return self.reg_list[id][1].predict(self.get_product_category([row['product_id']],  products_df))
+        return self.reg_list[id][1].predict(self.get_product_category([row['product_id']], products_df))
 
-    def predict2(self, user_id, product_id, products_df):
+    def predict2(self, user_id, product_id):
         id = self.find(user_id)
         if id == -1:
             return 0
         if self.reg_list[id][1] == 0:
             return 0
-        return self.reg_list[id][1].predict(self.get_product_category([product_id], products_df))
+        return self.reg_list[id][1].predict(self.get_product_category([product_id]))
 
+
+class ProbabilityClassificationModel:
+    def __init__(self, sessions_df, user_df):
+        self.sessions_df = sessions_df
+        self.user_df = user_df
+        self.values = []
+
+    def get_offered_discounts(self, uid):
+        return len(self.sessions_df.loc[(self.sessions_df['user_id'] == uid) & (self.sessions_df['offered_discount'] != 0)].index)
+
+    def get_buys_with_discount(self, uid):
+        return len(self.sessions_df.loc[(self.sessions_df['user_id'] == uid) & (self.sessions_df['event_type_BUY_PRODUCT'] == 1) & (
+                    self.sessions_df['offered_discount'] != 0)].index)
+
+    def train(self):
+        users = self.user_df['user_id']
+        for id in users:
+            if self.get_offered_discounts(id) < 2:
+                self.values.append(0)
+            else:
+                self.values.append(self.get_buys_with_discount(id) / (self.get_offered_discounts(id) - 1))
+
+    def predict1(self, index, cleared_test_sessions_df, products_df):
+        selected_users = []
+        i = -1
+        for id in self.user_df.index:
+            i += 1
+            if self.values[i] >= 0.1:
+                selected_users.append(1)
+            else:
+                selected_users.append(0)
+        return selected_users
