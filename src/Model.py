@@ -75,7 +75,7 @@ class RegressionModel:
                     count = count + 1
                     sum = sum + row2['offered_discount']
                     tmp.drop(tmp.index[j], inplace=True)
-                    j = j - 1
+                    j -= 1
                     drop_list.append(index2)
             if count > 1:
                 tmp.at[index, 'offered_discount'] = sum / count

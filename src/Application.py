@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     print('Model ready')
 
-    while(True):
+    while True:
         user_id = int(input())
         product_id = int(input())
         if not a_b or user_id % 2 == 0:
